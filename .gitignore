@@ -1,3 +1,8 @@
+# data
+/cav/
+/nav/
+/markov-builder-master/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
