@@ -20,8 +20,9 @@ function [rates,algebraic] = compute_rates(x,t,states)
     else
         states_num_rows = states_size(1);
     
-        % A42; CNa3 (C3)
-        ALGEBRAIC(:,4) = 1.00000 - (STATES(:,20)+STATES(:,21)+STATES(:,22)+STATES(:,25)+STATES(:,23)+STATES(:,24)+STATES(:,26)+STATES(:,27));
+        % A51; alpha_Na11
+        ALGEBRAIC(:,14) = 3.80200./( 0.102700.*exp( - (ALGEBRAIC(:,72)+2.50000)./17.0000)+ 0.200000.*exp( - (ALGEBRAIC(:,72)+2.50000)./150.000));
+
         % A43; CNa2 (C2)
         RATES(:,22) = ( ALGEBRAIC(:,14).*ALGEBRAIC(:,4)+ ALGEBRAIC(:,38).*STATES(:,21)+ ALGEBRAIC(:,42).*STATES(:,26)) - ( ALGEBRAIC(:,36).*STATES(:,22)+ ALGEBRAIC(:,27).*STATES(:,22)+ ALGEBRAIC(:,44).*STATES(:,22));
         % A44; CNa1 (C1)
@@ -39,8 +40,9 @@ function [rates,algebraic] = compute_rates(x,t,states)
         % A50; ICNa3 (IC3)
         RATES(:,27) = ( ALGEBRAIC(:,36).*STATES(:,26)+ ALGEBRAIC(:,44).*ALGEBRAIC(:,4)) - ( ALGEBRAIC(:,14).*STATES(:,27)+ ALGEBRAIC(:,42).*STATES(:,27));
 
-        % A51; alpha_Na11
-        ALGEBRAIC(:,14) = 3.80200./( 0.102700.*exp( - (ALGEBRAIC(:,72)+2.50000)./17.0000)+ 0.200000.*exp( - (ALGEBRAIC(:,72)+2.50000)./150.000));
+        % A42; CNa3 (C3)
+        ALGEBRAIC(:,4) = 1.00000 - (STATES(:,20)+STATES(:,21)+STATES(:,22)+STATES(:,25)+STATES(:,23)+STATES(:,24)+STATES(:,26)+STATES(:,27));
+
         % A52; alpha_Na12
         ALGEBRAIC(:,27) = 3.80200./( 0.102700.*exp( - (ALGEBRAIC(:,72)+2.50000)./15.0000)+ 0.230000.*exp( - (ALGEBRAIC(:,72)+2.50000)./150.000));
         % A53; alpha_Na13
