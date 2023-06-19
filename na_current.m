@@ -1,4 +1,10 @@
+clc
+clearvars
+
 [t,s,a] = INa();
+
+figure('Color','w')
+plot(t,a(:,16))
 
 figure('Color','w')
 plot(t,s)
@@ -88,23 +94,23 @@ function [rates,algebraic] = compute_rates(t,states,constants)
     % A64; beta_Na5
     algebraic(:,14) = algebraic(:,7)./50.0000;
 
-    % A42; CNa3 (C3)
-    algebraic(:,15) = 1.00000 - (states(:,1)+states(:,2)+states(:,3)+states(:,6)+states(:,4)+states(:,5)+states(:,7)+states(:,8));
-    % A43; CNa2 (C2)
-    rates(:,3) = (algebraic(:,1).*algebraic(:,4)+ algebraic(:,5).*states(:,2)+ algebraic(:,7).*states(:,7)) - (algebraic(:,4).*states(:,3)+ algebraic(:,2).*states(:,3)+ algebraic(:,8).*states(:,3));
-    % A44; CNa1 (C1)
+    % A42; CNa3 (C3); 176
+    algebraic(:,15) = 1.0 - (states(:,1)+states(:,2)+states(:,3)+states(:,6)+states(:,4)+states(:,5)+states(:,7)+states(:,8));
+    % A43; RATES(:,22); CNa2 (C2); 190
+    rates(:,3) = (algebraic(:,1).*algebraic(:,15)+ algebraic(:,5).*states(:,2)+ algebraic(:,7).*states(:,7)) - (algebraic(:,4).*states(:,3)+ algebraic(:,2).*states(:,3)+ algebraic(:,8).*states(:,3));
+    % A44; RATES(:,21); CNa1 (C1); 196
     rates(:,2) = (algebraic(:,2).*states(:,3)+ algebraic(:,6).*states(:,1)+ algebraic(:,7).*states(:,6)) - (algebraic(:,5).*states(:,2)+ algebraic(:,3).*states(:,2)+ algebraic(:,8).*states(:,2));
-    % A49; ICNa2 (IC2)
+    % A49; RATES(:,26); ICNa2 (IC2); 198
     rates(:,7) = (algebraic(:,1).*states(:,8)+ algebraic(:,5).*states(:,6)+ algebraic(:,8).*states(:,3)) - (algebraic(:,4).*states(:,7)+ algebraic(:,2).*states(:,7)+ algebraic(:,7).*states(:,7));
-    % A50; ICNa3 (IC3)
-    rates(:,8) = (algebraic(:,4).*states(:,7)+ algebraic(:,8).*algebraic(:,4)) - (algebraic(:,1).*states(:,8)+ algebraic(:,7).*states(:,8));    
-    % A45; ONa (O)
+    % A50; RATES(:,27); ICNa3 (IC3); 200
+    rates(:,8) = (algebraic(:,4).*states(:,7)+ algebraic(:,8).*algebraic(:,15)) - (algebraic(:,1).*states(:,8)+ algebraic(:,7).*states(:,8));    
+    % A45; RATES(:,20); ONa (O); 216
     rates(:,1) = (algebraic(:,3).*states(:,2)+ algebraic(:,10).*states(:,6)) - (algebraic(:,6).*states(:,1)+ algebraic(:,9).*states(:,1));
-    % A46; IFNa (IF)
+    % A46; RATES(:,25); nIFNa (IF); 222
     rates(:,6) = (algebraic(:,9).*states(:,1)+ algebraic(:,8).*states(:,2)+ algebraic(:,12).*states(:,4)+ algebraic(:,2).*states(:,7)) - (algebraic(:,10).*states(:,6)+ algebraic(:,7).*states(:,6)+ algebraic(:,11).*states(:,6)+ algebraic(:,5).*states(:,6));
-    % A47; I1Na (I1)
+    % A47; RATES(:,23); I1Na (I1); 242
     rates(:,4) = (algebraic(:,11).*states(:,6)+ algebraic(:,14).*states(:,5)) - (algebraic(:,12).*states(:,4)+ algebraic(:,13).*states(:,4));
-    % A48; I2Na (I2)
+    % A48; RATES(:,24); I2Na (I2); 244
     rates(:,5) =  algebraic(:,13).*states(:,4) -  algebraic(:,14).*states(:,5);
     % A40; I_Na
     algebraic(:,16) =  constants(1).*states(:,1).*(algebraic(:,17) - constants(2));   
