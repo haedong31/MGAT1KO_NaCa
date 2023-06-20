@@ -19,20 +19,20 @@ legend(["alpha_Na11","alpha_Na12","alpha_Na13","beta_Na11","beta_Na12", ...
 function [t,states,algebraic] = INa()
     % Initialize state variables
     init_states = [];
-    init_states(:,1) = 0.713483e-6;  % ONa; STATES(:,20) Open state of fast Na+ channel
-    init_states(:,2) = 0.279132e-3;  % CNa1; STATES(:,21) Closed state of fast Na+ channel
-    init_states(:,3) = 0.020752;  % CNa2; STATES(:,22) Closed state of fast Na+ channel
-    init_states(:,4) = 0.673345e-6;  % I1Na; STATES(:,23) Slow inactivated state 1 of fast Na+ channel
-    init_states(:,5) = 0.155787e-8;  % I2Na; STATES(:,24) Slow inactivated state 2 of fast Na+ channel
-    init_states(:,6) = 0.153176e-3;  % IFNa; STATES(:,25) Fast inactivated state of fast Na+ channel
-    init_states(:,7) = 0.0113879;  % ICNa2; STATES(:,26) Cloesd-inactivated state of fast Na+ channel
-    init_states(:,8) = 0.34278;  % ICNa3; STATES(:,27) Cloesd-inactivated state of fast Na+ channel
+    init_states(:,1) = 0.713483e-6; % ONa; Open state of fast Na+ channel
+    init_states(:,2) = 0.279132e-3; % CNa1; Closed state of fast Na+ channel
+    init_states(:,3) = 0.020752; % CNa2; Closed state of fast Na+ channel
+    init_states(:,4) = 0.673345e-6; % I1Na; Slow inactivated state 1 of fast Na+ channel
+    init_states(:,5) = 0.155787e-8; % I2Na; Slow inactivated state 2 of fast Na+ channel
+    init_states(:,6) = 0.153176e-3; % IFNa; Fast inactivated state of fast Na+ channel
+    init_states(:,7) = 0.0113879; % ICNa2; Cloesd-inactivated state of fast Na+ channel
+    init_states(:,8) = 0.34278; % ICNa3; Cloesd-inactivated state of fast Na+ channel
 
     % Constant variables
     constants = [];
     constants(1) = 13.0; % GNa; Maximun fast Na+ current conductance :mS/uF
     constants(2) = 39.4843; % A41; ENa; 39.4843
-    constants(3) = 5;
+    constants(3) = 5; % Nernst potential
 
     % Set options for ODE solver
     tspan = [0,150];
@@ -66,23 +66,23 @@ function [rates,algebraic] = compute_rates(t,states,constants)
     algebraic(:,17) = arrayfun(@(t)volt_clamp(t,constants(3)),t);
     
     % A51; alpha_Na11
-    algebraic(:,1) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./17.0000)+ 0.200000.*exp(-(algebraic(:,17)+2.50000)./150.000));
+    algebraic(:,1) = 3.80200./( 0.1027.*exp(-(algebraic(:,17)+2.50000)./17.0)+ 0.2.*exp(-(algebraic(:,17)+2.50000)./150.000));
     % A52; alpha_Na12
-    algebraic(:,2) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./15.0000)+ 0.230000.*exp(-(algebraic(:,17)+2.50000)./150.000));
+    algebraic(:,2) = 3.80200./( 0.1027.*exp(-(algebraic(:,17)+2.50000)./15.0)+ 0.23.*exp(-(algebraic(:,17)+2.50000)./150.000));
     % A53; alpha_Na13
-    algebraic(:,3) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./12.0000)+ 0.250000.*exp(-(algebraic(:,17)+2.50000)./150.000));
+    algebraic(:,3) = 3.80200./( 0.1027.*exp(-(algebraic(:,17)+2.50000)./12.0)+ 0.25.*exp(-(algebraic(:,17)+2.50000)./150.000));
     % A54; beta_Na11
-    algebraic(:,4) =  0.191700.*exp(-(algebraic(:,17)+2.50000)./20.3000);
+    algebraic(:,4) =  0.1917.*exp(-(algebraic(:,17)+2.50000)./20.3000);
     % A55; beta_Na12
-    algebraic(:,5) =  0.200000.*exp(-(algebraic(:,17)-2.50000)./20.3000);
+    algebraic(:,5) =  0.2.*exp(-(algebraic(:,17)-2.50000)./20.3000);
     % A56; beta_Na13
-    algebraic(:,6) =  0.220000.*exp(-(algebraic(:,17)-7.50000)./20.3000);
+    algebraic(:,6) =  0.22.*exp(-(algebraic(:,17)-7.50000)./20.3000);
     % A57; alpha_Na3
-    algebraic(:,7) =  7.00000e-07.*exp(-(algebraic(:,17)+7.00000)./7.70000);
+    algebraic(:,7) =  7.0e-07.*exp(-(algebraic(:,17)+7.0)./7.7);
     % A58; beta_Na3
-    algebraic(:,8) = 0.00840000+ 2.00000e-05.*(algebraic(:,17)+7.00000);
+    algebraic(:,8) = 0.0084+ 2.0e-05.*(algebraic(:,17)+7.0);
     % A59; alpha_Na2
-    algebraic(:,9) = 1.00000./( 0.188495.*exp(-(algebraic(:,17)+7.00000)./16.6000)+0.393956);
+    algebraic(:,9) = 1.0./( 0.188495.*exp(-(algebraic(:,17)+7.0)./16.6000)+0.393956);
     % A60; beta_Na2
     algebraic(:,10) = ( algebraic(:,3).*algebraic(:,9).*algebraic(:,7))./( algebraic(:,6).*algebraic(:,8));
     % A61; alpha_Na4
@@ -122,38 +122,57 @@ function algebraic = compute_alg(t,algebraic,states,constants)
     % Compute algebraic equations related to INa
     algebraic(:,17) = arrayfun(@(t)volt_clamp(t,constants(3)),t);
     
-    % A51; alpha_Na11; ALGEBRAIC(:,14)
-    algebraic(:,1) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./17.0000)+ 0.200000.*exp(-(algebraic(:,17)+2.50000)./150.000));
-    % A52; alpha_Na12l ALGEBRAIC(:,27)
-    algebraic(:,2) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./15.0000)+ 0.230000.*exp(-(algebraic(:,17)+2.50000)./150.000));
-    % A53; alpha_Na13; ALGEBRAIC(:,32)
-    algebraic(:,3) = 3.80200./( 0.102700.*exp(-(algebraic(:,17)+2.50000)./12.0000)+ 0.250000.*exp(-(algebraic(:,17)+2.50000)./150.000));
-    % A54; beta_Na11; ALGEBRAIC(:,36)
-    algebraic(:,4) =  0.191700.*exp(-(algebraic(:,17)+2.50000)./20.3000);
-    % A55; beta_Na12; ALGEBRAIC(:,38)
-    algebraic(:,5) =  0.200000.*exp(-(algebraic(:,17)-2.50000)./20.3000);
-    % A56; beta_Na13; ALGEBRAIC(:,40)
-    algebraic(:,6) =  0.220000.*exp(-(algebraic(:,17)-7.50000)./20.3000);
-    % A57; alpha_Na3; ALGEBRAIC(:,42)
-    algebraic(:,7) =  7.00000e-07.*exp(-(algebraic(:,17)+7.00000)./7.70000);
-    % A58; beta_Na3; ALGEBRAIC(:,44)
-    algebraic(:,8) = 0.00840000+ 2.00000e-05.*(algebraic(:,17)+7.00000);
-    % A59; alpha_Na2; ALGEBRAIC(:,46)
-    algebraic(:,9) = 1.00000./( 0.188495.*exp(-(algebraic(:,17)+7.00000)./16.6000)+0.393956);
-    % A60; beta_Na2; ALGEBRAIC(:,48)
-    algebraic(:,10) = ( algebraic(:,3).*algebraic(:,9).*algebraic(:,7))./( algebraic(:,6).*algebraic(:,8));
-    % A61; alpha_Na4; ALGEBRAIC(:,50)
-    algebraic(:,11) = algebraic(:,9)./1000.00;
-    % A62; beta_Na4; ALGEBRAIC(:,52)
-    algebraic(:,12) = algebraic(:,7);
-    % A63; alpha_Na5; ALGEBRAIC(:,54)
-    algebraic(:,13) = algebraic(:,9)./95000.0;
-    % A64; beta_Na5; ALGEBRAIC(:,56)
-    algebraic(:,14) = algebraic(:,7)./50.0000;
+    % 1. alpha11; A51; ALGEBRAIC(:,14)
+    algebraic(:,1) = 3.802./( 0.1027.*exp(-(algebraic(:,17)+x(1))./17.0)+ 0.2.*exp(-(algebraic(:,17)+x(1))./150.0));
+    % 2. beta11; A54; ALGEBRAIC(:,36)
+    algebraic(:,4) =  0.1917.*exp(-(algebraic(:,17)+x(2))./20.3);
+    % 3. alpha12; A52; ALGEBRAIC(:,27)
+    algebraic(:,2) = 3.802./( 0.1027.*exp(-(algebraic(:,17)+x(3))./15.0)+ 0.23.*exp(-(algebraic(:,17)+x(3))./150.0));
+    % 4. beta12; A55; ALGEBRAIC(:,38)
+    algebraic(:,5) =  0.2.*exp(-(algebraic(:,17)-x(4))./20.3);
+    % 5. alpha13; A53; ALGEBRAIC(:,32)
+    algebraic(:,3) = 3.802./( 0.1027.*exp(-(algebraic(:,17)+x(5))./12.0)+ 0.25.*exp(-(algebraic(:,17)+x(5))./150.0));
+    % 6. beta13; A56; ALGEBRAIC(:,40)
+    algebraic(:,6) =  0.22.*exp(-(algebraic(:,17)-x(6))./20.3);
+    % 7. alpha111
+    3.802./(0.1027.*exp(-(algebraic(:,17)+x(7))./17.0) + 0.2.*exp(-(algebraic(:,17)+x(7))./150.0));
+    % 8. alpha112
+    3.802./(0.1027.*exp(-(algebraic(:,17)+x(8))./15.0) + 0.23.*exp(-(algebraic(:,17)+x(8))./150.0));
+    % 9. beta111
+    0.1917.*exp(-(algebraic(:,17)+x(9))./20.3);
+    % 10. beta112
+    0.2.*exp(-(algebraic(:,17)-x(10))./20.3);
+    % 11. alpha31; A57; ALGEBRAIC(:,42)
+    algebraic(:,7) = 7.0e-07.*exp(-(algebraic(:,17)+x(11))./x(23));
+    % 12. beta31; A58; ALGEBRAIC(:,44)
+    algebraic(:,8) = x(12)+ 2.0e-05.*(algebraic(:,17)+7.0);
+    % 13. alpha32
+    7.0e-07.*exp(-(algebraic(:,17)+x(13))./x(24));
+    % 14. beta32
+    x(14) + 2.0e-05.*(algebraic(:,17)+7.0);
+    % 15. alpha33
+    7.0e-07.*exp(-(algebraic(:,17)+x(15))./x(25));
+    % 16. beta33
+    x(16) + 2.0e-05.*(algebraic(:,17)+7.0);
+    % 17. alpha2; A59; ALGEBRAIC(:,46)
+    algebraic(:,9) = 1.0./( 0.188495.*exp(-(algebraic(:,17)+x(17))./x(22))+0.393956);
+    % 18. beta2; A60; ALGEBRAIC(:,48)
+    % alpha3; algebraic(:,7) -> alpha33 algebraic(:,10) = ( algebraic(:,3).*algebraic(:,9).*algebraic(:,7))./( algebraic(:,6).*algebraic(:,8));
+    % 19. alpha4; A61; ALGEBRAIC(:,50)
+    algebraic(:,11) = x(18).*algebraic(:,9);
+    % 20. beta4; A62; ALGEBRAIC(:,52)
+    algebraic(:,12) = x(19).*algebraic(:,7);
+    % 21. alpha5; A63; ALGEBRAIC(:,54)
+    algebraic(:,13) = x(20).*algebraic(:,9);
+    % 22. beta5; A64; ALGEBRAIC(:,56)
+    algebraic(:,14) = x(21).*algebraic(:,7);
+    
     % A42; CNa3 (C3); ALGEBRAIC(:,4)
-    algebraic(:,15) = 1.00000 - (states(:,1)+states(:,2)+states(:,3)+states(:,6)+states(:,4)+states(:,5)+states(:,7)+states(:,8));
+    algebraic(:,15) = 1.0 - (states(:,1)+states(:,2)+states(:,3)+states(:,6)+states(:,4)+states(:,5)+states(:,7)+states(:,8));
     % A40; I_Na; ALGEBRAIC(:,58)
     algebraic(:,16) =  constants(1).*states(:,1).*(algebraic(:,17) - constants(2));
+
+    % x(18) = 1/1000.0; x(19) = 1.0; x(20) 1/95000.0; x(21) = 1/50.0;
 end
 
 function vc = volt_clamp(t,p)
