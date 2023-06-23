@@ -1,24 +1,4 @@
-clc
-clearvars
-
-x0 = [2.5,2.5,2.5,-2.5,2.5,-7.5,2.5,2.5,2.5,-2.5,7,0.0084,7,0.0084,7,0.0084,7,1/1000.0,1.0,1/95000.0,1/50.0,16.6,7.7,7.7,7.7];
-[t,s,a] = INa(x0);
-
-figure('Color','w')
-plot(t,a(:,24))
-title("I_{Na}")
-
-figure('Color','w')
-plot(t,s)
-legend(["ONa","CNa1","CNa2","I1Na","I2Na","IFNa","ICNa2","ICNa3"])
-
-% figure('Color','w')
-% plot(t,a)
-% legend(["alpha_Na11","alpha_Na12","alpha_Na13","beta_Na11","beta_Na12", ...
-%     "beta_Na13","alpha_Na3","beta_Na3","alpha_Na2","beta_Na2","alpha_Na4", ...
-%     "beta_Na4","alpha_Na5","beta_Na5","CNa3 (C3)","I_Na","Volt"])
-
-function [t,states,algebraic] = INa(x)
+function [t,states,algebraic] = INa(x,prot)
     % Initialize state variables
     init_states = [];
     init_states(:,1) = 0.713483e-6; % ONa; Open state of fast Na+ channel
@@ -30,25 +10,20 @@ function [t,states,algebraic] = INa(x)
     init_states(:,7) = 0.0113879; % ICNa2; Cloesd-inactivated state of fast Na+ channel
     init_states(:,8) = 0.34278; % ICNa3; Cloesd-inactivated state of fast Na+ channel
     
-    % Constant variables
-    constants = [];
-    constants(1) = 13.0; % GNa; Maximun fast Na+ current conductance :mS/uF
-    constants(2) = 39.4843; % A41; ENa; 39.4843
-    constants(3) = 5; % Nernst potential
-
     % Set options for ODE solver
-    tspan = [0,150];
+    simt = prot(3) + prot(5) + prot(7);
+    tspan = [0,simt];
     options = odeset('RelTol',1e-06,'AbsTol',1e-06,'MaxStep',1);
-
+    
     % Solve model using ODE solver
-    [t,states] = ode15s(@(t,states)compute_rates(t,states,constants,x),tspan,init_states,options);
+    [t,states] = ode15s(@(t,states)compute_rates(t,states,prot,x),tspan,init_states,options);
 
     % Compute algebraic variables
-    [~,algebraic] = compute_rates(t,states,constants,x);
-    algebraic = compute_alg(t,algebraic,states,constants,x);
+    [~,algebraic] = compute_rates(t,states,prot,x);
+    algebraic = compute_alg(t,algebraic,states,prot,x);
 end
 
-function [rates,alg] = compute_rates(t,states,constants,x)
+function [rates,alg] = compute_rates(t,states,prot,x)
     % Solve differential equations
     % number of state: 8
     % number of algebraic variables: 25
@@ -65,7 +40,7 @@ function [rates,alg] = compute_rates(t,states,constants,x)
     end
 
     % Stimulation voltage
-    alg(:,25) = arrayfun(@(t)volt_clamp(t,constants(3)),t);
+    alg(:,25) = arrayfun(@(t)volt_clamp(t,prot),t);
     
     % 1. alpha11; A51; ALGEBRAIC(:,14)
     alg(:,1) = 3.802./( 0.1027.*exp(-(alg(:,25)+x(1))./17.0)+ 0.2.*exp(-(alg(:,25)+x(1))./150.0));
@@ -131,14 +106,14 @@ function [rates,alg] = compute_rates(t,states,constants,x)
     % A48; RATES(:,24); I2Na (I2); 244
     rates(:,5) =  alg(:,21).*states(:,4) - alg(:,22).*states(:,5);
     % A40; I_Na
-    alg(:,24) = constants(1).*states(:,1).*(alg(:,25) - constants(2));   
+    alg(:,24) = x(26).*states(:,1).*(alg(:,25) - prot(1));   
     
     rates = rates';
 end
 
-function alg = compute_alg(t,alg,states,constants,x)
+function alg = compute_alg(t,alg,states,prot,x)
     % Compute algebraic equations related to INa
-    alg(:,25) = arrayfun(@(t)volt_clamp(t,constants(3)),t);
+    alg(:,25) = arrayfun(@(t)volt_clamp(t,prot),t);
     
     % 1. alpha11; A51; ALGEBRAIC(:,14)
     alg(:,1) = 3.802./( 0.1027.*exp(-(alg(:,25)+x(1))./17.0)+ 0.2.*exp(-(alg(:,25)+x(1))./150.0));
@@ -187,19 +162,21 @@ function alg = compute_alg(t,alg,states,constants,x)
     % 23. CNa3 (C3); A42; ALGEBRAIC(:,4)
     alg(:,23) = 1.0 - (states(:,1)+states(:,2)+states(:,3)+states(:,6)+states(:,4)+states(:,5)+states(:,7)+states(:,8));
     % 24. I_Na; A40; ALGEBRAIC(:,58)
-    alg(:,24) =  constants(1).*states(:,1).*(alg(:,25) - constants(2));
+    alg(:,24) =  x(26).*states(:,1).*(alg(:,25) - prot(1));
 end
 
-function vc = volt_clamp(t,p)
+function vc = volt_clamp(t,prot)
     % Generate voltage-clamp protocol
-    holdt = 5;
-    pt = 120;
-    holdp = -100;
+    holdp = prot(2);
+    holdt = prot(3);
+    p1 = prot(4);
+    p1t = prot(5);
+    p2 = prot(6);
     if (t < holdt)
         vc = holdp;
-    elseif (t >= holdt) && (t <= pt)
-        vc = p;
+    elseif (t >= holdt) && (t < (holdt+p1t))
+        vc = p1;
     else
-        vc = holdp;
+        vc = p2;
     end
 end
